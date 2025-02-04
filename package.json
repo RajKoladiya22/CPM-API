@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "nodemon dist/server.js",
+    "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
     "watch": "tsc --watch"
   },
