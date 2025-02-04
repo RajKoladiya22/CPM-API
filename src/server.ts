@@ -15,7 +15,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-  origin: "https://cpm-api.vercel.app", // Allow requests only from this origin
+  origin: "https://cpm-frontend.vercel.app", // Allow requests only from this origin
   methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific HTTP methods
   allowedHeaders: ["Content-Type", "Authorization"] // Allow specific headers
 }));
