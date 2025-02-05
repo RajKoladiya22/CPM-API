@@ -87,9 +87,6 @@ const updateCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     const { id } = req.params; // Get customer ID from route parameter
     const updates = req.body; // Get the fields to be updated from the request body
     const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId; // The logged-in admin's ID
-    console.log(id);
-    console.log(updates);
-    console.log(adminId);
     // Check if the user is an admin
     if (((_b = req.user) === null || _b === void 0 ? void 0 : _b.role) !== "admin") {
         res.status(403).json({ message: "Only admins can update customer data" });

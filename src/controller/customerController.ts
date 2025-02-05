@@ -82,6 +82,7 @@ export const searchCustomer = async (
 
   const id = req.user?.role === 'admin' ? req.user?.userId : req.user?.adminId;
 
+  
   const query: any = { adminId: id }; // Add the adminId filter to the query
   
   if (companyName) query.companyName = { $regex: companyName, $options: "i" };
@@ -118,9 +119,7 @@ export const updateCustomer = async (
   const { id } = req.params; // Get customer ID from route parameter
   const updates = req.body; // Get the fields to be updated from the request body
   const adminId = req.user?.userId; // The logged-in admin's ID
-  console.log(id);
-  console.log(updates);
-  console.log(adminId);
+
   
   // Check if the user is an admin
   if (req.user?.role !== "admin") {

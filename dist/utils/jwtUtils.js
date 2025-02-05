@@ -8,9 +8,8 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // Generate JWT token
 const generateToken = (userId, role, adminId) => {
     const payload = { userId, role, adminId }; // Payload contains user ID and role
-    console.log(payload);
     const secretKey = process.env.JWT_SECRET_KEY || 'CPM@shivansh@123'; // JWT secret key
-    const options = { expiresIn: '1h' }; // Token expires in 1 hour
+    const options = { expiresIn: '12h' }; // Token expires in 12 hour
     return jsonwebtoken_1.default.sign(payload, secretKey, options);
 };
 exports.generateToken = generateToken;
