@@ -19,6 +19,8 @@ export const addCustomer = async (
       mobileNumber,
       email,
       tallySerialNo,
+      prime,
+      blacklited,
       remark,
       dynamicFields, // Dynamic fields to be added to the customer
     } = req.body;
@@ -48,6 +50,8 @@ export const addCustomer = async (
       email,
       tallySerialNo,
       remark,
+      prime,
+      blacklited,
       adminId: req.user?.userId, // Save the admin's ID who is creating the customer
       dynamicFields: dynamicFields || {}, // Store the dynamic fields
     });

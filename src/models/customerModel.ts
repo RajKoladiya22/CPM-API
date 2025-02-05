@@ -8,6 +8,8 @@ export interface ICustomer extends Document {
   email: string;
   tallySerialNo: string;
   remark: string;
+  prime:boolean;
+  blacklited:boolean;
   dynamicFields: Map<string, any>;
 }
 
@@ -19,6 +21,8 @@ const customerSchema: Schema<ICustomer> = new Schema(
     mobileNumber: { type: String, required: true },
     email: { type: String, required: true },
     tallySerialNo: { type: String, required: true },
+    prime: {type: Boolean, required: false},
+    blacklited: {type: Boolean, required: false},
     remark: { type: String },
     dynamicFields: { type: Map, of: Schema.Types.Mixed }, 
   },

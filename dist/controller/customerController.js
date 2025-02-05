@@ -19,7 +19,7 @@ const responseHandler_1 = require("../utils/responseHandler");
 const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const { companyName, contactPerson, mobileNumber, email, tallySerialNo, remark, dynamicFields, // Dynamic fields to be added to the customer
+        const { companyName, contactPerson, mobileNumber, email, tallySerialNo, prime, blacklited, remark, dynamicFields, // Dynamic fields to be added to the customer
          } = req.body;
         // Fetch the admin's custom fields
         const customFields = yield customFieldModel_1.default.find({
@@ -40,6 +40,8 @@ const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             email,
             tallySerialNo,
             remark,
+            prime,
+            blacklited,
             adminId: (_b = req.user) === null || _b === void 0 ? void 0 : _b.userId, // Save the admin's ID who is creating the customer
             dynamicFields: dynamicFields || {}, // Store the dynamic fields
         });

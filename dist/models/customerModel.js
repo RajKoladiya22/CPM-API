@@ -41,6 +41,8 @@ const customerSchema = new mongoose_1.Schema({
     mobileNumber: { type: String, required: true },
     email: { type: String, required: true },
     tallySerialNo: { type: String, required: true },
+    prime: { type: Boolean, required: false },
+    blacklited: { type: Boolean, required: false },
     remark: { type: String },
     dynamicFields: { type: Map, of: mongoose_1.Schema.Types.Mixed },
 }, { timestamps: true });
