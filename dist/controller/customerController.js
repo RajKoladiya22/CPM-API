@@ -50,6 +50,7 @@ const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         return (0, responseHandler_1.sendSuccessResponse)(res, 201, "Customer added successfully", newCustomer);
     }
     catch (error) {
+        console.log(error);
         // Check for duplicate key error (code 11000)
         if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
             return (0, responseHandler_1.sendErrorResponse)(res, 400, `The email '${error.keyValue.email}' is already in use.`);

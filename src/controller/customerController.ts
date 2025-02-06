@@ -65,6 +65,8 @@ export const addCustomer = async (
       newCustomer
     );
   } catch (error: any) {
+    console.log(error);
+    
     // Check for duplicate key error (code 11000)
     if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
       return sendErrorResponse(
