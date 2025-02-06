@@ -51,9 +51,14 @@ const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
     catch (error) {
         console.log(error);
-        // Check for duplicate key error (code 11000)
-        if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
-            return (0, responseHandler_1.sendErrorResponse)(res, 400, `The email '${error.keyValue.email}' is already in use.`);
+        if (error.name === "ValidationError") {
+            const messages = Object.values(error.errors).map((err) => err.message);
+            (0, responseHandler_1.sendErrorResponse)(res, 400, messages.join(", "));
+        }
+        // Handle duplicate key errors (code 11000)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            (0, responseHandler_1.sendErrorResponse)(res, 400, `The ${field} '${error.keyValue[field]}' is already in use.`);
         }
         return (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
     }
@@ -113,8 +118,14 @@ const updateCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         });
     }
     catch (error) {
-        if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
-            (0, responseHandler_1.sendErrorResponse)(res, 400, `The email '${error.keyValue.email}' is already in use.`);
+        if (error.name === "ValidationError") {
+            const messages = Object.values(error.errors).map((err) => err.message);
+            (0, responseHandler_1.sendErrorResponse)(res, 400, messages.join(", "));
+        }
+        // Handle duplicate key errors (code 11000)
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            (0, responseHandler_1.sendErrorResponse)(res, 400, `The ${field} '${error.keyValue[field]}' is already in use.`);
         }
         (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
         // Pass errors to the error handler middleware

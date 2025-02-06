@@ -66,13 +66,21 @@ export const addCustomer = async (
     );
   } catch (error: any) {
     console.log(error);
-    
-    // Check for duplicate key error (code 11000)
-    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
-      return sendErrorResponse(
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map(
+        (err: any) => err.message
+      );
+      sendErrorResponse(res, 400, messages.join(", "));
+    }
+
+    // Handle duplicate key errors (code 11000)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      sendErrorResponse(
         res,
         400,
-        `The email '${error.keyValue.email}' is already in use.`
+        `The ${field} '${error.keyValue[field]}' is already in use.`
       );
     }
     return sendErrorResponse(res, 500, "Internal Server Error");
@@ -147,11 +155,20 @@ export const updateCustomer = async (
       customer,
     });
   } catch (error: any) {
-    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map(
+        (err: any) => err.message
+      );
+      sendErrorResponse(res, 400, messages.join(", "));
+    }
+
+    // Handle duplicate key errors (code 11000)
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
       sendErrorResponse(
         res,
         400,
-        `The email '${error.keyValue.email}' is already in use.`
+        `The ${field} '${error.keyValue[field]}' is already in use.`
       );
     }
     sendErrorResponse(res, 500, "Internal Server Error");
