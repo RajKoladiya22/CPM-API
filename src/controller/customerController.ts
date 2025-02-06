@@ -19,12 +19,13 @@ export const addCustomer = async (
       mobileNumber,
       email,
       tallySerialNo,
-      // prime,
-      // blacklited,
+      prime,
+      blacklisted,
       remark,
       dynamicFields, // Dynamic fields to be added to the customer
     } = req.body;
-
+    const sanitizedDynamicFields =
+      dynamicFields && typeof dynamicFields === "object" ? dynamicFields : {};
     // Fetch the admin's custom fields
     const customFields = await AdminCustomField.find({
       adminId: req.user?.userId,
@@ -50,10 +51,10 @@ export const addCustomer = async (
       email,
       tallySerialNo,
       remark,
-      // prime,
-      // blacklited,
+      prime,
+      blacklisted,
       adminId: req.user?.userId, // Save the admin's ID who is creating the customer
-      dynamicFields: dynamicFields || {}, // Store the dynamic fields
+      dynamicFields: sanitizedDynamicFields, // Store the dynamic fields
     });
 
     await newCustomer.save();
@@ -64,7 +65,6 @@ export const addCustomer = async (
       newCustomer
     );
   } catch (error: any) {
-    console.error(error);
     // Check for duplicate key error (code 11000)
     if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
       return sendErrorResponse(
@@ -84,11 +84,10 @@ export const searchCustomer = async (
 ) => {
   const { companyName, mobileNumber, contactPerson, tallySerialNo } = req.query;
 
-  const id = req.user?.role === 'admin' ? req.user?.userId : req.user?.adminId;
+  const id = req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
 
-  
   const query: any = { adminId: id }; // Add the adminId filter to the query
-  
+
   if (companyName) query.companyName = { $regex: companyName, $options: "i" };
   if (tallySerialNo)
     query.tallySerialNo = { $regex: tallySerialNo, $options: "i" };
@@ -101,11 +100,7 @@ export const searchCustomer = async (
     const customers = await Customer.find(query);
 
     if (customers.length === 0) {
-      return sendErrorResponse(
-        res,
-        404,
-        "No customers found!"
-      );
+      return sendErrorResponse(res, 404, "No customers found!");
     }
 
     return sendSuccessResponse(res, 200, "Customers found", customers);
@@ -124,7 +119,6 @@ export const updateCustomer = async (
   const updates = req.body; // Get the fields to be updated from the request body
   const adminId = req.user?.userId; // The logged-in admin's ID
 
-  
   // Check if the user is an admin
   if (req.user?.role !== "admin") {
     res.status(403).json({ message: "Only admins can update customer data" });
@@ -150,8 +144,16 @@ export const updateCustomer = async (
       message: "Customer updated successfully",
       customer,
     });
-  } catch (error) {
-    next(error); // Pass errors to the error handler middleware
+  } catch (error: any) {
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      sendErrorResponse(
+        res,
+        400,
+        `The email '${error.keyValue.email}' is already in use.`
+      );
+    }
+    sendErrorResponse(res, 500, "Internal Server Error");
+    // Pass errors to the error handler middleware
   }
 };
 
@@ -187,7 +189,6 @@ export const deleteCustomer = async (
       message: "Customer deleted successfully",
     });
   } catch (error) {
-    next(error); // Pass errors to the error handler middleware
+    sendErrorResponse(res, 500, "Internal Server Error");
   }
 };
-

@@ -19,11 +19,9 @@ const responseHandler_1 = require("../utils/responseHandler");
 const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const { companyName, contactPerson, mobileNumber, email, tallySerialNo, 
-        // prime,
-        // blacklited,
-        remark, dynamicFields, // Dynamic fields to be added to the customer
+        const { companyName, contactPerson, mobileNumber, email, tallySerialNo, prime, blacklisted, remark, dynamicFields, // Dynamic fields to be added to the customer
          } = req.body;
+        const sanitizedDynamicFields = dynamicFields && typeof dynamicFields === "object" ? dynamicFields : {};
         // Fetch the admin's custom fields
         const customFields = yield customFieldModel_1.default.find({
             adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId,
@@ -43,16 +41,15 @@ const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             email,
             tallySerialNo,
             remark,
-            // prime,
-            // blacklited,
+            prime,
+            blacklisted,
             adminId: (_b = req.user) === null || _b === void 0 ? void 0 : _b.userId, // Save the admin's ID who is creating the customer
-            dynamicFields: dynamicFields || {}, // Store the dynamic fields
+            dynamicFields: sanitizedDynamicFields, // Store the dynamic fields
         });
         yield newCustomer.save();
         return (0, responseHandler_1.sendSuccessResponse)(res, 201, "Customer added successfully", newCustomer);
     }
     catch (error) {
-        console.error(error);
         // Check for duplicate key error (code 11000)
         if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
             return (0, responseHandler_1.sendErrorResponse)(res, 400, `The email '${error.keyValue.email}' is already in use.`);
@@ -64,7 +61,7 @@ exports.addCustomer = addCustomer;
 const searchCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const { companyName, mobileNumber, contactPerson, tallySerialNo } = req.query;
-    const id = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.role) === 'admin' ? (_b = req.user) === null || _b === void 0 ? void 0 : _b.userId : (_c = req.user) === null || _c === void 0 ? void 0 : _c.adminId;
+    const id = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.role) === "admin" ? (_b = req.user) === null || _b === void 0 ? void 0 : _b.userId : (_c = req.user) === null || _c === void 0 ? void 0 : _c.adminId;
     const query = { adminId: id }; // Add the adminId filter to the query
     if (companyName)
         query.companyName = { $regex: companyName, $options: "i" };
@@ -115,7 +112,11 @@ const updateCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         });
     }
     catch (error) {
-        next(error); // Pass errors to the error handler middleware
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+            (0, responseHandler_1.sendErrorResponse)(res, 400, `The email '${error.keyValue.email}' is already in use.`);
+        }
+        (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
+        // Pass errors to the error handler middleware
     }
 });
 exports.updateCustomer = updateCustomer;
@@ -145,7 +146,7 @@ const deleteCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         });
     }
     catch (error) {
-        next(error); // Pass errors to the error handler middleware
+        (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
     }
 });
 exports.deleteCustomer = deleteCustomer;
