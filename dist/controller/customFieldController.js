@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCustomFields = exports.addCustomField = void 0;
+exports.deleteCustomField = exports.updateCustomField = exports.getCustomFields = exports.addCustomField = void 0;
 const customFieldModel_1 = __importDefault(require("../models/customFieldModel"));
 const responseHandler_1 = require("../utils/responseHandler");
 const addCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,7 +40,9 @@ exports.addCustomField = addCustomField;
 const getCustomFields = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const customFields = yield customFieldModel_1.default.find({ adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId });
+        const customFields = yield customFieldModel_1.default.find({
+            adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId,
+        });
         return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Custom fields fetched successfully", customFields);
     }
     catch (error) {
@@ -49,3 +51,43 @@ const getCustomFields = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.getCustomFields = getCustomFields;
+const updateCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { id } = req.params; // Get field ID from request params
+    const { fieldName, fieldType, isRequired } = req.body;
+    // console.log({ fieldName, fieldType, isRequired });
+    try {
+        const updatedField = yield customFieldModel_1.default.findOneAndUpdate({ _id: id, adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId }, // Ensure only admin's fields are updated
+        { fieldName, fieldType, isRequired }, { new: true, runValidators: true });
+        if (!updatedField) {
+            return (0, responseHandler_1.sendErrorResponse)(res, 404, "Custom field not found or unauthorized");
+        }
+        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Custom field updated successfully", updatedField);
+    }
+    catch (error) {
+        // console.error(error);
+        return (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
+    }
+});
+exports.updateCustomField = updateCustomField;
+// 🔴 Delete Custom Field
+const deleteCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { id } = req.params; // Get field ID from request params
+    // console.log("ID",id);
+    try {
+        const deletedField = yield customFieldModel_1.default.findOneAndDelete({
+            _id: id,
+            adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId, // Ensure admin can only delete their own fields
+        });
+        if (!deletedField) {
+            return (0, responseHandler_1.sendErrorResponse)(res, 404, "Custom field not found or unauthorized");
+        }
+        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Custom field deleted successfully");
+    }
+    catch (error) {
+        console.error(error);
+        return (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
+    }
+});
+exports.deleteCustomField = deleteCustomField;

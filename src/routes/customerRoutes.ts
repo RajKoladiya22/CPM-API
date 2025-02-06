@@ -1,7 +1,7 @@
 import express from "express";
 import { Request, Response, NextFunction } from "express";
 import { addCustomer, searchCustomer, deleteCustomer, updateCustomer } from "../controller/customerController";
-import { addCustomField, getCustomFields } from "../controller/customFieldController";
+import { addCustomField, getCustomFields, updateCustomField, deleteCustomField } from "../controller/customFieldController";
 import { authenticateUser, authorizeRoles } from "../middlewares/authMiddleware";
 
 const router = express.Router();
@@ -17,6 +17,13 @@ const asyncHandler = (fn: any) => (
 router.post("/customfield", authenticateUser, authorizeRoles("admin", "superadmin"), asyncHandler(addCustomField));
 
 router.get("/customfield", authenticateUser, authorizeRoles("admin", "superadmin"), asyncHandler(getCustomFields));
+
+router.put("/customfield/:id", authenticateUser, authorizeRoles("admin", "superadmin"), asyncHandler(updateCustomField));
+
+router.delete("/customfield/:id", authenticateUser, authorizeRoles("admin", "superadmin"), asyncHandler(deleteCustomField));
+
+
+
 
 router.post("/customer", authenticateUser, authorizeRoles("admin", "superadmin"), asyncHandler(addCustomer));
 
