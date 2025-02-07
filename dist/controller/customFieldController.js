@@ -51,6 +51,36 @@ const getCustomFields = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.getCustomFields = getCustomFields;
+// export const getCustomFields = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const adminId = req.user?.userId;
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+//     const skip = (page - 1) * limit;
+//     // Fetch total count for pagination metadata
+//     const totalCount = await AdminCustomField.countDocuments({ adminId });
+//     // Fetch paginated custom fields
+//     const customFields = await AdminCustomField.find({ adminId })
+//       .skip(skip)
+//       .limit(limit);
+//     return sendSuccessResponse(res, 200, "Custom fields fetched successfully", {
+//       customFields,
+//       pagination: {
+//         totalItems: totalCount,
+//         totalPages: Math.ceil(totalCount / limit),
+//         currentPage: page,
+//         pageSize: limit,
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// };
 const updateCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { id } = req.params; // Get field ID from request params
@@ -70,7 +100,6 @@ const updateCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.updateCustomField = updateCustomField;
-// 🔴 Delete Custom Field
 const deleteCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { id } = req.params; // Get field ID from request params

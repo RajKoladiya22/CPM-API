@@ -59,6 +59,40 @@ export const getCustomFields = async (
   }
 };
 
+// export const getCustomFields = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const adminId = req.user?.userId;
+//     const page = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+//     const skip = (page - 1) * limit;
+
+//     // Fetch total count for pagination metadata
+//     const totalCount = await AdminCustomField.countDocuments({ adminId });
+
+//     // Fetch paginated custom fields
+//     const customFields = await AdminCustomField.find({ adminId })
+//       .skip(skip)
+//       .limit(limit);
+
+//     return sendSuccessResponse(res, 200, "Custom fields fetched successfully", {
+//       customFields,
+//       pagination: {
+//         totalItems: totalCount,
+//         totalPages: Math.ceil(totalCount / limit),
+//         currentPage: page,
+//         pageSize: limit,
+//       },
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// };
+
 export const updateCustomField = async (
   req: Request,
   res: Response,
@@ -67,7 +101,7 @@ export const updateCustomField = async (
   const { id } = req.params; // Get field ID from request params
   const { fieldName, fieldType, isRequired } = req.body;
   // console.log({ fieldName, fieldType, isRequired });
-  
+
   try {
     const updatedField = await AdminCustomField.findOneAndUpdate(
       { _id: id, adminId: req.user?.userId }, // Ensure only admin's fields are updated
@@ -95,7 +129,6 @@ export const updateCustomField = async (
   }
 };
 
-// 🔴 Delete Custom Field
 export const deleteCustomField = async (
   req: Request,
   res: Response,
@@ -103,7 +136,7 @@ export const deleteCustomField = async (
 ) => {
   const { id } = req.params; // Get field ID from request params
   // console.log("ID",id);
-  
+
   try {
     const deletedField = await AdminCustomField.findOneAndDelete({
       _id: id,

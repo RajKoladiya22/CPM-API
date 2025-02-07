@@ -64,11 +64,37 @@ const addCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.addCustomer = addCustomer;
+// export const searchCustomer = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   const { companyName, mobileNumber, contactPerson, tallySerialNo } = req.query;
+//   const id = req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
+//   const query: any = { adminId: id }; // Add the adminId filter to the query
+//   if (companyName) query.companyName = { $regex: companyName, $options: "i" };
+//   if (tallySerialNo)
+//     query.tallySerialNo = { $regex: tallySerialNo, $options: "i" };
+//   if (mobileNumber)
+//     query.mobileNumber = { $regex: mobileNumber, $options: "i" };
+//   if (contactPerson)
+//     query.contactPerson = { $regex: contactPerson, $options: "i" };
+//   try {
+//     const customers = await Customer.find(query);
+//     if (customers.length === 0) {
+//       return sendErrorResponse(res, 404, "No customers found!");
+//     }
+//     return sendSuccessResponse(res, 200, "Customers found", customers);
+//   } catch (error) {
+//     console.error(error);
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// };
 const searchCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b, _c;
     const { companyName, mobileNumber, contactPerson, tallySerialNo } = req.query;
     const id = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.role) === "admin" ? (_b = req.user) === null || _b === void 0 ? void 0 : _b.userId : (_c = req.user) === null || _c === void 0 ? void 0 : _c.adminId;
-    const query = { adminId: id }; // Add the adminId filter to the query
+    const query = { adminId: id };
     if (companyName)
         query.companyName = { $regex: companyName, $options: "i" };
     if (tallySerialNo)
@@ -78,11 +104,25 @@ const searchCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     if (contactPerson)
         query.contactPerson = { $regex: contactPerson, $options: "i" };
     try {
-        const customers = yield customerModel_1.default.find(query);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+        // Fetch total count for pagination metadata
+        const totalCount = yield customerModel_1.default.countDocuments(query);
+        // Fetch paginated customers
+        const customers = yield customerModel_1.default.find(query).skip(skip).limit(limit);
         if (customers.length === 0) {
             return (0, responseHandler_1.sendErrorResponse)(res, 404, "No customers found!");
         }
-        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Customers found", customers);
+        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Customers found", {
+            customers,
+            pagination: {
+                totalItems: totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+                currentPage: page,
+                pageSize: limit,
+            },
+        });
     }
     catch (error) {
         console.error(error);

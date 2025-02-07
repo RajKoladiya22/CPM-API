@@ -24,6 +24,8 @@ export const addCustomer = async (
       remark,
       dynamicFields, // Dynamic fields to be added to the customer
     } = req.body;
+
+    
     const sanitizedDynamicFields =
       dynamicFields && typeof dynamicFields === "object" ? dynamicFields : {};
     // Fetch the admin's custom fields
@@ -87,6 +89,39 @@ export const addCustomer = async (
   }
 };
 
+// export const searchCustomer = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   const { companyName, mobileNumber, contactPerson, tallySerialNo } = req.query;
+
+//   const id = req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
+
+//   const query: any = { adminId: id }; // Add the adminId filter to the query
+
+//   if (companyName) query.companyName = { $regex: companyName, $options: "i" };
+//   if (tallySerialNo)
+//     query.tallySerialNo = { $regex: tallySerialNo, $options: "i" };
+//   if (mobileNumber)
+//     query.mobileNumber = { $regex: mobileNumber, $options: "i" };
+//   if (contactPerson)
+//     query.contactPerson = { $regex: contactPerson, $options: "i" };
+
+//   try {
+//     const customers = await Customer.find(query);
+
+//     if (customers.length === 0) {
+//       return sendErrorResponse(res, 404, "No customers found!");
+//     }
+
+//     return sendSuccessResponse(res, 200, "Customers found", customers);
+//   } catch (error) {
+//     console.error(error);
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// };
+
 export const searchCustomer = async (
   req: Request,
   res: Response,
@@ -96,7 +131,7 @@ export const searchCustomer = async (
 
   const id = req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
 
-  const query: any = { adminId: id }; // Add the adminId filter to the query
+  const query: any = { adminId: id };
 
   if (companyName) query.companyName = { $regex: companyName, $options: "i" };
   if (tallySerialNo)
@@ -107,13 +142,29 @@ export const searchCustomer = async (
     query.contactPerson = { $regex: contactPerson, $options: "i" };
 
   try {
-    const customers = await Customer.find(query);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch total count for pagination metadata
+    const totalCount = await Customer.countDocuments(query);
+
+    // Fetch paginated customers
+    const customers = await Customer.find(query).skip(skip).limit(limit);
 
     if (customers.length === 0) {
       return sendErrorResponse(res, 404, "No customers found!");
     }
-
-    return sendSuccessResponse(res, 200, "Customers found", customers);
+    
+    return sendSuccessResponse(res, 200, "Customers found", {
+      customers,
+      pagination: {
+        totalItems: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: page,
+        pageSize: limit,
+      },
+    });
   } catch (error) {
     console.error(error);
     return sendErrorResponse(res, 500, "Internal Server Error");
