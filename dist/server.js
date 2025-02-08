@@ -8,7 +8,9 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = __importDefault(require("./config/db"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const customerRoutes_1 = __importDefault(require("./routes/customerRoutes"));
+const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
 const tokenController_1 = __importDefault(require("./controller/tokenController"));
+const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
 const responseHandler_1 = require("./utils/responseHandler");
 const cors_1 = __importDefault(require("cors"));
 dotenv_1.default.config();
@@ -25,6 +27,8 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes_1.default);
 app.use("/api/customer", customerRoutes_1.default);
 app.use("/api/users", tokenController_1.default);
+app.use("/api", adminRoutes_1.default);
+app.use("/api", taskRoutes_1.default);
 // Global Error Handling Middleware
 app.use((err, req, res, next) => {
     (0, responseHandler_1.sendErrorResponse)(res, err.statusCode || 500, err.message || "Internal Server Error");

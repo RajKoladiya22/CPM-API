@@ -20,5 +20,4 @@ router.post('/login', asyncHandler(authController_1.loginUser));
 router.post('/logout', authMiddleware_1.authenticateUser, asyncHandler(authController_1.logoutUser));
 router.post('/forgot-password', asyncHandler(authController_1.forgotPassword));
 router.post('/reset-password', asyncHandler(authController_1.resetPassword));
-router.get('/userlist', asyncHandler(registrationCodeController_1.userList));
 exports.default = router;

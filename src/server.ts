@@ -3,7 +3,9 @@ import dotenv from "dotenv";
 import db from "./config/db";
 import userRoutes from "./routes/userRoutes";
 import customerRoutes from "./routes/customerRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import tokenRoutes from "./controller/tokenController";
+import taskRoutes from "./routes/taskRoutes";
 import { AppError  } from "./utils/AppError";
 import { sendErrorResponse } from "./utils/responseHandler";
 import cors from "cors";
@@ -26,6 +28,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/users", userRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/users", tokenRoutes);
+app.use("/api", adminRoutes);
+app.use("/api", taskRoutes);
 
 // Global Error Handling Middleware
 app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {

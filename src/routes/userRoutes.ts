@@ -1,7 +1,7 @@
 import express from "express";
 import { registerWithCode } from "../controller/registrationController";
 import { loginUser, logoutUser, forgotPassword, resetPassword } from "../controller/authController";
-import { createAdminRegistrationCode, createUserRegistrationCode, userList } from "../controller/registrationCodeController";
+import { createAdminRegistrationCode, createUserRegistrationCode } from "../controller/registrationCodeController";
 import { Request, Response, NextFunction } from "express";
 import { authenticateUser, authorizeRoles } from '../middlewares/authMiddleware';
 
@@ -24,6 +24,6 @@ router.post('/login', asyncHandler(loginUser));
 router.post('/logout', authenticateUser, asyncHandler(logoutUser));
 router.post('/forgot-password', asyncHandler(forgotPassword));
 router.post('/reset-password', asyncHandler(resetPassword));
-router.get('/userlist', asyncHandler(userList));
+
 
 export default router;

@@ -12,8 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userList = exports.createUserRegistrationCode = exports.createAdminRegistrationCode = void 0;
-const userModel_1 = __importDefault(require("../models/userModel"));
+exports.createUserRegistrationCode = exports.createAdminRegistrationCode = void 0;
 const registretioncodeModel_1 = __importDefault(require("../models/registretioncodeModel"));
 const AppError_1 = require("../utils/AppError");
 const responseHandler_1 = require("../utils/responseHandler");
@@ -67,20 +66,3 @@ const createUserRegistrationCode = (req, res, next) => __awaiter(void 0, void 0,
     }
 });
 exports.createUserRegistrationCode = createUserRegistrationCode;
-const userList = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // Fetch users grouped by roles
-        const users = yield userModel_1.default.find({}, "username email role adminId");
-        // Group users by role
-        const groupedUsers = {
-            superadmins: users.filter(user => user.role === "superadmin"),
-            admins: users.filter(user => user.role === "admin"),
-            users: users.filter(user => user.role === "user"),
-        };
-        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Users retrieved successfully", groupedUsers);
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.userList = userList;

@@ -88,24 +88,4 @@ export const createUserRegistrationCode = async (
   }
 };
 
-export const userList = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // Fetch users grouped by roles
-    const users = await User.find({}, "username email role adminId");
 
-    // Group users by role
-    const groupedUsers = {
-      superadmins: users.filter(user => user.role === "superadmin"),
-      admins: users.filter(user => user.role === "admin"),
-      users: users.filter(user => user.role === "user"),
-    };
-
-    return sendSuccessResponse(res, 200, "Users retrieved successfully", groupedUsers);
-  } catch (error) {
-    next(error);
-  }
-};
