@@ -17,17 +17,19 @@ const customFieldModel_1 = __importDefault(require("../models/customFieldModel")
 const responseHandler_1 = require("../utils/responseHandler");
 const addCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { fieldName, fieldType, isRequired } = req.body;
-    if (!fieldName || !fieldType) {
-        return (0, responseHandler_1.sendErrorResponse)(res, 400, "Field name and type are required!");
-    }
-    const newCustomField = new customFieldModel_1.default({
-        adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId, // Admin adding the custom field
-        fieldName,
-        fieldType,
-        isRequired,
-    });
     try {
+        const { fieldName, fieldType, isRequired, options, isMultiSelect } = req.body;
+        if (!fieldName || !fieldType) {
+            return (0, responseHandler_1.sendErrorResponse)(res, 400, "Field name and type are required!");
+        }
+        const newCustomField = new customFieldModel_1.default({
+            adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId, // Admin adding the custom field
+            fieldName,
+            fieldType,
+            isRequired,
+            options,
+            isMultiSelect,
+        });
         yield newCustomField.save();
         return (0, responseHandler_1.sendSuccessResponse)(res, 201, "Custom field added successfully", newCustomField);
     }
@@ -81,21 +83,61 @@ exports.getCustomFields = getCustomFields;
 //     return sendErrorResponse(res, 500, "Internal Server Error");
 //   }
 // };
+// export const updateCustomField = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   const { id } = req.params; // Get field ID from request params
+//   const { fieldName, fieldType, isRequired } = req.body;
+//   // console.log({ fieldName, fieldType, isRequired });
+//   try {
+//     const updatedField = await AdminCustomField.findOneAndUpdate(
+//       { _id: id, adminId: req.user?.userId }, // Ensure only admin's fields are updated
+//       { fieldName, fieldType, isRequired },
+//       { new: true, runValidators: true }
+//     );
+//     if (!updatedField) {
+//       return sendErrorResponse(
+//         res,
+//         404,
+//         "Custom field not found or unauthorized"
+//       );
+//     }
+//     return sendSuccessResponse(
+//       res,
+//       200,
+//       "Custom field updated successfully",
+//       updatedField
+//     );
+//   } catch (error) {
+//     // console.error(error);
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// };
 const updateCustomField = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const { id } = req.params; // Get field ID from request params
-    const { fieldName, fieldType, isRequired } = req.body;
-    // console.log({ fieldName, fieldType, isRequired });
+    const { fieldName, fieldType, isRequired, options } = req.body;
+    // console.log({ fieldName, fieldType, isRequired, options });
     try {
+        // Validate options if fieldType is 'select'
+        if (fieldType === "select" && (!options || !Array.isArray(options))) {
+            return (0, responseHandler_1.sendErrorResponse)(res, 400, "Options are required for select fields.");
+        }
+        const updateData = { fieldName, fieldType, isRequired, options };
+        // Include options only if fieldType is 'select'
+        if (fieldType === "select") {
+            updateData.options = options;
+        }
         const updatedField = yield customFieldModel_1.default.findOneAndUpdate({ _id: id, adminId: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId }, // Ensure only admin's fields are updated
-        { fieldName, fieldType, isRequired }, { new: true, runValidators: true });
+        updateData, { new: true, runValidators: true });
         if (!updatedField) {
-            return (0, responseHandler_1.sendErrorResponse)(res, 404, "Custom field not found or unauthorized");
+            return (0, responseHandler_1.sendErrorResponse)(res, 404, "Custom field not found or unauthorized.");
         }
         return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Custom field updated successfully", updatedField);
     }
     catch (error) {
-        // console.error(error);
         return (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
     }
 });

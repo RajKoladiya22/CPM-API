@@ -5,6 +5,8 @@ interface IAdminCustomField extends Document {
   fieldName: string;
   fieldType: string;  
   isRequired: boolean;
+  options: string[];
+  isMultiSelect: boolean;
 }
 
 const adminCustomFieldSchema: Schema<IAdminCustomField> = new Schema(
@@ -13,6 +15,8 @@ const adminCustomFieldSchema: Schema<IAdminCustomField> = new Schema(
     fieldName: { type: String, required: true },
     fieldType: { type: String, required: true },
     isRequired: { type: Boolean, default: false },
+    options: { type: [String], default: [] }, // Store dropdown options
+    isMultiSelect: { type: Boolean, default: false }, // Multi-select flag
   },
   { timestamps: true }
 );

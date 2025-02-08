@@ -39,6 +39,8 @@ const adminCustomFieldSchema = new mongoose_1.Schema({
     fieldName: { type: String, required: true },
     fieldType: { type: String, required: true },
     isRequired: { type: Boolean, default: false },
+    options: { type: [String], default: [] }, // Store dropdown options
+    isMultiSelect: { type: Boolean, default: false }, // Multi-select flag
 }, { timestamps: true });
 const AdminCustomField = mongoose_1.default.model("AdminCustomField", adminCustomFieldSchema);
 exports.default = AdminCustomField;

@@ -87,7 +87,7 @@ export const addCustomer = async (
     }
     return sendErrorResponse(res, 500, "Internal Server Error");
   }
-};
+}; 
 
 // export const searchCustomer = async (
 //   req: Request,
