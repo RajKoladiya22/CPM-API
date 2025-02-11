@@ -14,22 +14,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUserByAdmin = exports.getUsersByAdmin = exports.userList = void 0;
 const userModel_1 = __importDefault(require("../models/userModel"));
+const employeeModel_1 = __importDefault(require("../models/employeeModel"));
 const responseHandler_1 = require("../utils/responseHandler");
 const userList = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Fetch users along with their associated admin or superadmin
-        const users = yield userModel_1.default.find({}, "username email role adminId")
-            .populate("adminId", "username email role") // Populate admin details
+        // Fetch superadmins and admins from User table
+        const users = yield userModel_1.default.find({ role: { $in: ["superadmin", "admin"] } }, "username email role adminId")
+            .populate("adminId", "username email role")
+            .lean();
+        // Fetch users from Employee table
+        const employees = yield employeeModel_1.default.find({}, "username email role adminId")
+            .populate("adminId", "username email role")
             .lean();
         // Group users by role
         const groupedUsers = {
             superadmins: users.filter((user) => user.role === "superadmin"),
             admins: users.filter((user) => user.role === "admin"),
-            users: users.filter((user) => user.role === "user"),
+            users: employees, // All employees are considered "users"
         };
-        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Users retrieved successfully", groupedUsers);
+        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Users and Employees retrieved successfully", groupedUsers);
     }
     catch (error) {
+        console.error("Error in userList:", error);
         next(error);
     }
 });
@@ -43,7 +49,7 @@ const getUsersByAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             return (0, responseHandler_1.sendErrorResponse)(res, 403, "Access denied. Admins only.");
         }
         // Fetch users associated with the admin
-        const users = yield userModel_1.default.find({ adminId: id }).select("username email role createdAt updatedAt");
+        const users = yield employeeModel_1.default.find({ adminId: id }).select("username email role createdAt updatedAt designation");
         return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Users fetched successfully", users);
     }
     catch (error) {
@@ -58,12 +64,12 @@ const deleteUserByAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         const { id } = req.params; // User ID to be deleted
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId; // Admin's ID from authenticated request
         // Check if user exists and belongs to the admin
-        const user = yield userModel_1.default.findOne({ _id: id, adminId });
+        const user = yield employeeModel_1.default.findOne({ _id: id, adminId });
         if (!user) {
             return (0, responseHandler_1.sendErrorResponse)(res, 404, "User not found or unauthorized.");
         }
         // Delete the user
-        yield userModel_1.default.findByIdAndDelete(id);
+        yield employeeModel_1.default.findByIdAndDelete(id);
         return (0, responseHandler_1.sendSuccessResponse)(res, 200, "User deleted successfully.");
     }
     catch (error) {

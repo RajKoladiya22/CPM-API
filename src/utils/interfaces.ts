@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // 1. IUser Interface for the User Model
 export interface IUser extends Document {
+  designation: string;
   username: string | null;
   email: string;
   password: string;
@@ -20,6 +21,7 @@ export interface IUser extends Document {
 
 export interface ICode extends Document {
   username: string;
+  designation: string;
   code: string; // The actual registration code
   createdBy: mongoose.Types.ObjectId; // The ID of the user (super admin or admin) who created the code
   role: string; // Role that the code is used for: 'admin' or 'user'

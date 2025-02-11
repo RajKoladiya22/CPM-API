@@ -55,7 +55,10 @@ export const createUserRegistrationCode = async (
 ) => {
   try {
     const adminId = req.user?.userId;
-    const {username} = req.body
+    const {username, designation } = req.body
+
+    console.log({username, designation });
+    
     // Ensure the user is an admin
     if (req.user?.role !== "admin") {
       return sendErrorResponse(
@@ -63,6 +66,9 @@ export const createUserRegistrationCode = async (
         403,
         "Only admins can generate user registration codes."
       );
+    }
+    if (!designation) {
+      return sendErrorResponse(res, 400, "Designation is required.");
     }
 
     const code = Math.random().toString(36).substring(2, 15); // Generate a random code
@@ -73,6 +79,7 @@ export const createUserRegistrationCode = async (
       code,
       createdBy: adminId,
       role: "user",
+      designation
     });
 
     await registrationCode.save();

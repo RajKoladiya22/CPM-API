@@ -7,12 +7,13 @@ const codeSchema: Schema<ICode> = new Schema(
   {
     code: { type: String, required: true, unique: true },
     username: {type: String, required: true},
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the user who created the code
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 
     role: {
       type: String,
       enum: ['admin', 'user', 'superadmin'],
       required: true,
     },
+    designation: { type: String, required: false },
     used: { type: Boolean, default: false },
   },
   { timestamps: true }

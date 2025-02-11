@@ -89,41 +89,8 @@ export const addCustomer = async (
   }
 }; 
 
-// export const searchCustomer = async (
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   const { companyName, mobileNumber, contactPerson, tallySerialNo } = req.query;
-
-//   const id = req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
-
-//   const query: any = { adminId: id }; // Add the adminId filter to the query
-
-//   if (companyName) query.companyName = { $regex: companyName, $options: "i" };
-//   if (tallySerialNo)
-//     query.tallySerialNo = { $regex: tallySerialNo, $options: "i" };
-//   if (mobileNumber)
-//     query.mobileNumber = { $regex: mobileNumber, $options: "i" };
-//   if (contactPerson)
-//     query.contactPerson = { $regex: contactPerson, $options: "i" };
-
-//   try {
-//     const customers = await Customer.find(query);
-
-//     if (customers.length === 0) {
-//       return sendErrorResponse(res, 404, "No customers found!");
-//     }
-
-//     return sendSuccessResponse(res, 200, "Customers found", customers);
-//   } catch (error) {
-//     console.error(error);
-//     return sendErrorResponse(res, 500, "Internal Server Error");
-//   }
-// };
-
 export const searchCustomer = async (
-  req: Request,
+  req: Request, 
   res: Response,
   next: NextFunction
 ) => {

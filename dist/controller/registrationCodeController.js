@@ -45,10 +45,14 @@ const createUserRegistrationCode = (req, res, next) => __awaiter(void 0, void 0,
     var _a, _b;
     try {
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
-        const { username } = req.body;
+        const { username, designation } = req.body;
+        console.log({ username, designation });
         // Ensure the user is an admin
         if (((_b = req.user) === null || _b === void 0 ? void 0 : _b.role) !== "admin") {
             return (0, responseHandler_1.sendErrorResponse)(res, 403, "Only admins can generate user registration codes.");
+        }
+        if (!designation) {
+            return (0, responseHandler_1.sendErrorResponse)(res, 400, "Designation is required.");
         }
         const code = Math.random().toString(36).substring(2, 15); // Generate a random code
         // Create a registration code for a user
@@ -57,6 +61,7 @@ const createUserRegistrationCode = (req, res, next) => __awaiter(void 0, void 0,
             code,
             createdBy: adminId,
             role: "user",
+            designation
         });
         yield registrationCode.save();
         return (0, responseHandler_1.sendSuccessResponse)(res, 201, "User registration code created successfully.", { code });

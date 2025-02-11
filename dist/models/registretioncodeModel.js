@@ -38,12 +38,13 @@ const mongoose_1 = __importStar(require("mongoose"));
 const codeSchema = new mongoose_1.Schema({
     code: { type: String, required: true, unique: true },
     username: { type: String, required: true },
-    createdBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to the user who created the code
+    createdBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
     role: {
         type: String,
         enum: ['admin', 'user', 'superadmin'],
         required: true,
     },
+    designation: { type: String, required: false },
     used: { type: Boolean, default: false },
 }, { timestamps: true });
 const Code = mongoose_1.default.model('Code', codeSchema);

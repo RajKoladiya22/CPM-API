@@ -1,38 +1,48 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../models/userModel";
+import Employee from "../models/employeeModel";
 import {
   sendSuccessResponse,
   sendErrorResponse,
 } from "../utils/responseHandler";
 
 export const userList = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      // Fetch users along with their associated admin or superadmin
-      const users = await User.find({}, "username email role adminId")
-        .populate("adminId", "username email role") // Populate admin details
-        .lean();
-  
-      // Group users by role
-      const groupedUsers = {
-        superadmins: users.filter((user) => user.role === "superadmin"),
-        admins: users.filter((user) => user.role === "admin"),
-        users: users.filter((user) => user.role === "user"),
-      };
-  
-      return sendSuccessResponse(
-        res,
-        200,
-        "Users retrieved successfully",
-        groupedUsers
-      );
-    } catch (error) {
-      next(error);
-    }
-  };
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    // Fetch superadmins and admins from User table
+    const users = await User.find(
+      { role: { $in: ["superadmin", "admin"] } },
+      "username email role adminId"
+    )
+      .populate("adminId", "username email role")
+      .lean();
+
+    // Fetch users from Employee table
+    const employees = await Employee.find({}, "username email role adminId")
+      .populate("adminId", "username email role")
+      .lean();
+
+    // Group users by role
+    const groupedUsers = {
+      superadmins: users.filter((user) => user.role === "superadmin"),
+      admins: users.filter((user) => user.role === "admin"),
+      users: employees, // All employees are considered "users"
+    };
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Users and Employees retrieved successfully",
+      groupedUsers
+    );
+  } catch (error) {
+    console.error("Error in userList:", error);
+    next(error);
+  }
+};
 
 export const getUsersByAdmin = async (
   req: Request,
@@ -48,8 +58,8 @@ export const getUsersByAdmin = async (
     }
 
     // Fetch users associated with the admin
-    const users = await User.find({ adminId: id }).select(
-      "username email role createdAt updatedAt"
+    const users = await Employee.find({ adminId: id }).select(
+      "username email role createdAt updatedAt designation"
     );
 
     return sendSuccessResponse(res, 200, "Users fetched successfully", users);
@@ -69,14 +79,14 @@ export const deleteUserByAdmin = async (
     const adminId = req.user?.userId; // Admin's ID from authenticated request
 
     // Check if user exists and belongs to the admin
-    const user = await User.findOne({ _id: id, adminId });
+    const user = await Employee.findOne({ _id: id, adminId });
 
     if (!user) {
       return sendErrorResponse(res, 404, "User not found or unauthorized.");
     }
 
     // Delete the user
-    await User.findByIdAndDelete(id);
+    await Employee.findByIdAndDelete(id);
 
     return sendSuccessResponse(res, 200, "User deleted successfully.");
   } catch (error) {
@@ -84,4 +94,3 @@ export const deleteUserByAdmin = async (
     return sendErrorResponse(res, 500, "Internal Server Error");
   }
 };
-

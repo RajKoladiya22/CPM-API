@@ -17,7 +17,7 @@ const TaskSchema: Schema = new Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     assignedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    assignedTo: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    assignedTo: { type: Schema.Types.ObjectId, ref: "employee", required: true },
     deadline: { type: Date, required: true },
     status: {
       type: String,

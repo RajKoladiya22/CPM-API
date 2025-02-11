@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import { IUser } from "../utils/interfaces";
 import User from "../models/userModel";
+import Employee from "../models/employeeModel";
 import Code from "../models/registretioncodeModel";
 import { AppError } from "../utils/AppError";
 import {
@@ -25,35 +26,62 @@ export const registerWithCode = async (
   }
 
   try {
+  
     const code = await Code.findOne({ code: registrationCode });
     if (!code) {
-      return sendErrorResponse(
-        res,
-        400,
-        "Invalid or expired registration code."
-      );
+      return sendErrorResponse(res, 400, "Invalid or expired registration code.");
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return sendErrorResponse(
-        res,
-        400,
-        "User with this email already exists."
-      );
+    // if (code.used) {
+    //   return sendErrorResponse(res, 400, "This registration code has already been used.");
+    // }
+
+    // Fetch the role of the user who created this code
+    const creator = await User.findById(code.createdBy);
+    if (!creator) {
+      return sendErrorResponse(res, 400, "Invalid creator of this registration code.");
     }
 
-    const newUser = new User({
-      username: username,
-      email: email,
-      password: password,
-      role: code.role,
-      adminId: code.createdBy,
-      registrationCode: code.code,
-    });
+    let newUser;
+
+    if (creator.role === "admin") {
+      const existingEmployee = await Employee.findOne({ email });
+      if (existingEmployee) {
+        return sendErrorResponse(res, 400, "User with this email already exists.");
+      }
+
+      // Save as an Employee and assign designation
+      newUser = new Employee({
+        username,
+        email,
+        password,
+        designation: code.designation || "Employee", // Assign designation dynamically
+        role: code.role,
+        adminId: code.createdBy,
+        registrationCode: code.code,
+      });
+    } else if (creator.role === "superadmin") {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return sendErrorResponse(res, 400, "User with this email already exists.");
+      }
+
+      // Save as a User
+      newUser = new User({
+        username,
+        email,
+        password,
+        role: code.role,
+        adminId: code.createdBy,
+        registrationCode: code.code,
+      });
+    } else {
+      return sendErrorResponse(res, 400, "Invalid role in registration code.");
+    }
 
     await newUser.save();
 
+    // Mark the code as used
     code.used = true;
     await code.save();
 
@@ -73,3 +101,4 @@ export const registerWithCode = async (
     next(new AppError("Internal Server Error", 500));
   }
 };
+

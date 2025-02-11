@@ -20,6 +20,7 @@ const assignTask = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     var _a;
     try {
         const { title, description, assignedTo, deadline } = req.body;
+        // console.log({ title, description, assignedTo, deadline })
         if (!title || !description || !assignedTo || !deadline) {
             return (0, responseHandler_1.sendErrorResponse)(res, 400, "All fields are required");
         }
@@ -44,6 +45,8 @@ const getTasksByAdmin = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
     var _a;
     try {
         const tasks = yield taskModel_1.default.find({ assignedBy: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId }).populate("assignedTo", "username email");
+        // console.log(req.user?.userId);
+        // console.log(tasks)
         return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Tasks retrieved successfully", tasks);
     }
     catch (error) {
@@ -56,7 +59,16 @@ const getUserTasks = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
     var _a;
     try {
         const tasks = yield taskModel_1.default.find({ assignedTo: (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId });
-        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "User tasks retrieved successfully", tasks);
+        // Group tasks by their status
+        const groupedTasks = tasks.reduce((groups, task) => {
+            const status = task.status || 'Unknown'; // Default to 'Unknown' if status is missing
+            if (!groups[status]) {
+                groups[status] = [];
+            }
+            groups[status].push(task);
+            return groups;
+        }, {});
+        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "User tasks retrieved and grouped by status", groupedTasks);
     }
     catch (error) {
         next(error);

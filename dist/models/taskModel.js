@@ -38,7 +38,7 @@ const TaskSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     assignedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },
-    assignedTo: { type: mongoose_1.Schema.Types.ObjectId, ref: "User", required: true },
+    assignedTo: { type: mongoose_1.Schema.Types.ObjectId, ref: "employee", required: true },
     deadline: { type: Date, required: true },
     status: {
         type: String,

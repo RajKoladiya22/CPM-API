@@ -2,14 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import User from "../models/userModel";
-import { sendSuccessResponse, sendErrorResponse } from "../utils/responseHandler";
+import Employee from "../models/employeeModel";
+import {
+  sendSuccessResponse,
+  sendErrorResponse,
+} from "../utils/responseHandler";
 import { generateToken, verifyToken } from "../utils/jwtUtils";
-import { sendEmail } from "../utils/emailService";  // Utility to send emails
+import { sendEmail } from "../utils/emailService"; // Utility to send emails
 
 // Temporary token storage (Use Redis or Database in production)
 const blacklistedTokens = new Set<string>();
 
-export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+export const loginUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -17,11 +25,14 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    // Find user by email
-    const user: any = await User.findOne({ email });
+    // Try finding the user in both User and Employee collections
+    let user: any = await User.findOne({ email });
 
     if (!user) {
-      return sendErrorResponse(res, 404, "User not found!");
+      user = await Employee.findOne({ email });
+      if (!user) {
+        return sendErrorResponse(res, 404, "User not found!");
+      }
     }
 
     // Compare password
@@ -36,13 +47,17 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
     await user.save();
 
     // Generate JWT token
-    const token = generateToken(user._id.toString(), user.role, user.adminId.toString());
-    
+    const token = generateToken(
+      user._id.toString(),
+      user.role,
+      user.adminId?.toString() || null // Handle cases where adminId might be undefined
+    );
+
     return sendSuccessResponse(res, 200, "Login successful!", {
       token,
       user: {
         id: user._id,
-        username: user.username,
+        username: user.username || user.name, // Handle different field names
         email: user.email,
         role: user.role,
         lastLogin: user.lastLogin,
@@ -54,6 +69,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
+
 //  Logout API (Token Blacklisting)
 export const logoutUser = async (req: Request, res: Response) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -61,12 +77,16 @@ export const logoutUser = async (req: Request, res: Response) => {
     return sendErrorResponse(res, 400, "No token provided.");
   }
 
-  blacklistedTokens.add(token);  // Add token to blacklist (Consider Redis for real-world apps)
+  blacklistedTokens.add(token); // Add token to blacklist (Consider Redis for real-world apps)
   return sendSuccessResponse(res, 200, "Logout successful!");
 };
 
 //  Forgot Password API (Send Reset Link via Email)
-export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email } = req.body;
   if (!email) {
     return sendErrorResponse(res, 400, "Email is required!");
@@ -80,7 +100,10 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 
     // Generate a password reset token (valid for 15 minutes)
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const hashedResetToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const hashedResetToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
 
     user.resetPasswordToken = hashedResetToken;
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiration
@@ -88,9 +111,17 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 
     // Send reset email
     const resetUrl = `http://yourfrontend.com/reset-password/${resetToken}`;
-    await sendEmail(user.email, "Password Reset Request", `Click here to reset your password: ${resetUrl}`);
+    await sendEmail(
+      user.email,
+      "Password Reset Request",
+      `Click here to reset your password: ${resetUrl}`
+    );
 
-    return sendSuccessResponse(res, 200, "Password reset link sent to your email!");
+    return sendSuccessResponse(
+      res,
+      200,
+      "Password reset link sent to your email!"
+    );
   } catch (error) {
     return sendErrorResponse(res, 500, "Internal server error");
   }

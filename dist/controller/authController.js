@@ -16,21 +16,26 @@ exports.resetPassword = exports.forgotPassword = exports.logoutUser = exports.lo
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const crypto_1 = __importDefault(require("crypto"));
 const userModel_1 = __importDefault(require("../models/userModel"));
+const employeeModel_1 = __importDefault(require("../models/employeeModel"));
 const responseHandler_1 = require("../utils/responseHandler");
 const jwtUtils_1 = require("../utils/jwtUtils");
 const emailService_1 = require("../utils/emailService"); // Utility to send emails
 // Temporary token storage (Use Redis or Database in production)
 const blacklistedTokens = new Set();
 const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { email, password } = req.body;
     if (!email || !password) {
         return (0, responseHandler_1.sendErrorResponse)(res, 400, "Email and password are required!");
     }
     try {
-        // Find user by email
-        const user = yield userModel_1.default.findOne({ email });
+        // Try finding the user in both User and Employee collections
+        let user = yield userModel_1.default.findOne({ email });
         if (!user) {
-            return (0, responseHandler_1.sendErrorResponse)(res, 404, "User not found!");
+            user = yield employeeModel_1.default.findOne({ email });
+            if (!user) {
+                return (0, responseHandler_1.sendErrorResponse)(res, 404, "User not found!");
+            }
         }
         // Compare password
         const isMatch = yield bcryptjs_1.default.compare(password, user.password);
@@ -41,12 +46,13 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         user.lastLogin = new Date();
         yield user.save();
         // Generate JWT token
-        const token = (0, jwtUtils_1.generateToken)(user._id.toString(), user.role, user.adminId.toString());
+        const token = (0, jwtUtils_1.generateToken)(user._id.toString(), user.role, ((_a = user.adminId) === null || _a === void 0 ? void 0 : _a.toString()) || null // Handle cases where adminId might be undefined
+        );
         return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Login successful!", {
             token,
             user: {
                 id: user._id,
-                username: user.username,
+                username: user.username || user.name, // Handle different field names
                 email: user.email,
                 role: user.role,
                 lastLogin: user.lastLogin,
@@ -83,7 +89,10 @@ const forgotPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         }
         // Generate a password reset token (valid for 15 minutes)
         const resetToken = crypto_1.default.randomBytes(32).toString("hex");
-        const hashedResetToken = crypto_1.default.createHash("sha256").update(resetToken).digest("hex");
+        const hashedResetToken = crypto_1.default
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
         user.resetPasswordToken = hashedResetToken;
         user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins expiration
         yield user.save();
