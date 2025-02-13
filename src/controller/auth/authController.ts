@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import User from "../models/userModel";
-import Employee from "../models/employeeModel";
+import User from "../../models/auth/userModel";
 import {
   sendSuccessResponse,
   sendErrorResponse,
-} from "../utils/responseHandler";
-import { generateToken, verifyToken } from "../utils/jwtUtils";
-import { sendEmail } from "../utils/emailService"; // Utility to send emails
+} from "../../utils/responseHandler";
+import { generateToken, verifyToken } from "../../utils/jwtUtils";
+import { sendEmail } from "../../utils/emailService"; // Utility to send emails
 
 // Temporary token storage (Use Redis or Database in production)
 const blacklistedTokens = new Set<string>();
@@ -29,10 +28,7 @@ export const loginUser = async (
     let user: any = await User.findOne({ email });
 
     if (!user) {
-      user = await Employee.findOne({ email });
-      if (!user) {
-        return sendErrorResponse(res, 404, "User not found!");
-      }
+      return sendErrorResponse(res, 404, "User not found!");
     }
 
     // Compare password
@@ -68,7 +64,6 @@ export const loginUser = async (
     return sendErrorResponse(res, 500, "Internal server error");
   }
 };
-
 
 //  Logout API (Token Blacklisting)
 export const logoutUser = async (req: Request, res: Response) => {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import Task from "../models/taskModel";
-import { sendSuccessResponse, sendErrorResponse } from "../utils/responseHandler";
+import Task from "../../models/task/taskModel";
+import { sendSuccessResponse, sendErrorResponse } from "../../utils/responseHandler";
 
 // Admin assigns a task to a user
 export const assignTask = async (req: Request, res: Response, next: NextFunction) => {

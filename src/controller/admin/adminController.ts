@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import User from "../models/userModel";
-import Employee from "../models/employeeModel";
+import User from "../../models/auth/userModel";
+import Employee from "../../models/auth/employeeModel";
 import {
   sendSuccessResponse,
   sendErrorResponse,
-} from "../utils/responseHandler";
+} from "../../utils/responseHandler";
 
 export const userList = async (
   req: Request,
@@ -12,16 +12,11 @@ export const userList = async (
   next: NextFunction
 ) => {
   try {
-    // Fetch superadmins and admins from User table
+    // Fetch all relevant users from User table
     const users = await User.find(
-      { role: { $in: ["superadmin", "admin"] } },
+      { role: { $in: ["superadmin", "admin", "subadmin", "employee"] } },
       "username email role adminId"
     )
-      .populate("adminId", "username email role")
-      .lean();
-
-    // Fetch users from Employee table
-    const employees = await Employee.find({}, "username email role adminId")
       .populate("adminId", "username email role")
       .lean();
 
@@ -29,13 +24,14 @@ export const userList = async (
     const groupedUsers = {
       superadmins: users.filter((user) => user.role === "superadmin"),
       admins: users.filter((user) => user.role === "admin"),
-      users: employees, // All employees are considered "users"
+      subadmins: users.filter((user) => user.role === "subadmin"),
+      employees: users.filter((user) => user.role === "employee"),
     };
 
     return sendSuccessResponse(
       res,
       200,
-      "Users and Employees retrieved successfully",
+      "Users retrieved successfully",
       groupedUsers
     );
   } catch (error) {
@@ -44,30 +40,54 @@ export const userList = async (
   }
 };
 
+
 export const getUsersByAdmin = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const id =
-      req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
-    // Check if the logged-in user is an admin
-    if (!id) {
+    const user = req.user;
+    if (!user) {
+      return sendErrorResponse(res, 403, "Unauthorized access.");
+    }
+
+    let adminId:any;
+
+    if (user.role === "admin") {
+      adminId = user.userId; // Admin fetching users under them
+    } else if (user.role === "subadmin") {
+      adminId = user.adminId; // Subadmin fetching only employees under them
+    } else {
       return sendErrorResponse(res, 403, "Access denied. Admins only.");
     }
 
-    // Fetch users associated with the admin
-    const users = await Employee.find({ adminId: id }).select(
+    // Fetch subadmins and employees based on role
+    const subAdminsAndEmployees = await User.find(
+      { adminId: adminId, role: { $in: ["subadmin", "employee"] } },
       "username email role createdAt updatedAt designation"
-    );
+    )
+      .populate("adminId", "username email role")
+      .lean();
 
-    return sendSuccessResponse(res, 200, "Users fetched successfully", users);
+    // Grouping logic
+    const groupedUsers = {
+      subadmins: subAdminsAndEmployees.filter((user) => user.role === "subadmin"),
+      employees: subAdminsAndEmployees.filter((user) => user.role === "employee"),
+    };
+
+    return sendSuccessResponse(
+      res,
+      200,
+      "Users fetched successfully",
+      groupedUsers
+    );
   } catch (error) {
-    console.error(error);
+    console.error("Error in getUsersByAdmin:", error);
     return sendErrorResponse(res, 500, "Internal Server Error");
   }
 };
+
 
 export const deleteUserByAdmin = async (
   req: Request,

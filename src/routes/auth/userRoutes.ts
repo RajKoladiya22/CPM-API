@@ -1,9 +1,9 @@
 import express from "express";
-import { registerWithCode } from "../controller/registrationController";
-import { loginUser, logoutUser, forgotPassword, resetPassword } from "../controller/authController";
-import { createAdminRegistrationCode, createUserRegistrationCode } from "../controller/registrationCodeController";
+import { registerWithCode } from "../../controller/auth/registrationController";
+import { loginUser, logoutUser, forgotPassword, resetPassword } from "../../controller/auth/authController";
+import { createRegistrationCode } from "../../controller/auth/registrationCodeController";
 import { Request, Response, NextFunction } from "express";
-import { authenticateUser, authorizeRoles } from '../middlewares/authMiddleware';
+import { authenticateUser, authorizeRoles } from '../../middlewares/authMiddleware';
 
 // Wrapper function to catch async errors
 const asyncHandler = (fn: any) => (
@@ -16,8 +16,7 @@ const asyncHandler = (fn: any) => (
 
 const router = express.Router();
 
-router.post("/admincode", authenticateUser,authorizeRoles("superadmin"), asyncHandler(createAdminRegistrationCode));
-router.post("/usercode", authenticateUser,authorizeRoles("admin"), asyncHandler(createUserRegistrationCode));
+router.post("/generatecode", authenticateUser,authorizeRoles("superadmin", "admin"), asyncHandler(createRegistrationCode));
 
 router.post("/register", asyncHandler(registerWithCode));
 router.post('/login', asyncHandler(loginUser));

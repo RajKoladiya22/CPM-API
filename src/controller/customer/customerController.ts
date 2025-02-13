@@ -1,11 +1,93 @@
 import { Request, Response, NextFunction } from "express";
-import Customer from "../models/customerModel";
-import AdminCustomField from "../models/customFieldModel";
-import { IUser } from "../utils/interfaces";
+import Customer from "../../models/customer/customerModel";
+import AdminCustomField from "../../models/customer/customFieldModel";
+import { IUser } from "../../utils/interfaces";
 import {
   sendSuccessResponse,
   sendErrorResponse,
-} from "../utils/responseHandler";
+} from "../../utils/responseHandler";
+
+// export const addCustomer = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const {
+//       companyName,
+//       contactPerson,
+//       mobileNumber,
+//       email,
+//       tallySerialNo,
+//       prime,
+//       blacklisted,
+//       remark,
+//       dynamicFields, // Dynamic fields to be added to the customer
+//     } = req.body;
+
+    
+//     const sanitizedDynamicFields =
+//       dynamicFields && typeof dynamicFields === "object" ? dynamicFields : {};
+//     // Fetch the admin's custom fields
+//     const customFields = await AdminCustomField.find({
+//       adminId: req.user?.userId,
+//     });
+
+//     // Validate dynamic fields according to admin's custom fields
+//     const dynamicFieldKeys = Object.keys(dynamicFields);
+//     for (let key of dynamicFieldKeys) {
+//       const field = customFields.find((f) => f.fieldName === key);
+//       if (!field) {
+//         return sendErrorResponse(
+//           res,
+//           400,
+//           `Field '${key}' is not a valid custom field for your admin.`
+//         );
+//       }
+//     }
+
+//     const newCustomer = new Customer({
+//       companyName,
+//       contactPerson,
+//       mobileNumber,
+//       email,
+//       tallySerialNo,
+//       remark,
+//       prime,
+//       blacklisted,
+//       adminId: req.user?.userId, // Save the admin's ID who is creating the customer
+//       dynamicFields: sanitizedDynamicFields, // Store the dynamic fields
+//     });
+
+//     await newCustomer.save();
+//     return sendSuccessResponse(
+//       res,
+//       201,
+//       "Customer added successfully",
+//       newCustomer
+//     );
+//   } catch (error: any) {
+//     console.log(error);
+
+//     if (error.name === "ValidationError") {
+//       const messages = Object.values(error.errors).map(
+//         (err: any) => err.message
+//       );
+//       sendErrorResponse(res, 400, messages.join(", "));
+//     }
+
+//     // Handle duplicate key errors (code 11000)
+//     if (error.code === 11000) {
+//       const field = Object.keys(error.keyPattern)[0];
+//       sendErrorResponse(
+//         res,
+//         400,
+//         `The ${field} '${error.keyValue[field]}' is already in use.`
+//       );
+//     }
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// }; 
 
 export const addCustomer = async (
   req: Request,
@@ -23,18 +105,30 @@ export const addCustomer = async (
       blacklisted,
       remark,
       dynamicFields, // Dynamic fields to be added to the customer
+      products, // Array of products
     } = req.body;
-
+    // console.log({companyName,
+    //   contactPerson,
+    //   mobileNumber,
+    //   email,
+    //   tallySerialNo,
+    //   prime,
+    //   blacklisted,
+    //   remark,
+    //   dynamicFields, 
+    //   products,
+    // });
     
     const sanitizedDynamicFields =
       dynamicFields && typeof dynamicFields === "object" ? dynamicFields : {};
+
     // Fetch the admin's custom fields
     const customFields = await AdminCustomField.find({
       adminId: req.user?.userId,
     });
 
     // Validate dynamic fields according to admin's custom fields
-    const dynamicFieldKeys = Object.keys(dynamicFields);
+    const dynamicFieldKeys = Object.keys(dynamicFields || {});
     for (let key of dynamicFieldKeys) {
       const field = customFields.find((f) => f.fieldName === key);
       if (!field) {
@@ -45,6 +139,30 @@ export const addCustomer = async (
         );
       }
     }
+
+    // Validate product details if provided
+    if (products && !Array.isArray(products)) {
+      return sendErrorResponse(res, 400, "Products should be an array.");
+    }
+
+    // Ensure required fields in each product
+    const validatedProducts = (products || []).map((product: any) => {
+      // console.log("productName",product.productName);
+      
+      // if (!product.productName || !product.purchaseDate) {
+      //   throw new Error("Product name and purchase date are required.");
+      // }
+      return {
+        productName: product.productName,
+        purchaseDate: new Date(product.purchaseDate),
+        renewalDate: product.renewalDate ? new Date(product.renewalDate) : undefined,
+        details: product.details || "",
+        reference: product.reference || false,
+        referenceDetail: product.referenceDetail
+          ? product.referenceDetail
+          : undefined,
+      };
+    });
 
     const newCustomer = new Customer({
       companyName,
@@ -57,6 +175,7 @@ export const addCustomer = async (
       blacklisted,
       adminId: req.user?.userId, // Save the admin's ID who is creating the customer
       dynamicFields: sanitizedDynamicFields, // Store the dynamic fields
+      products: validatedProducts, // Store the products
     });
 
     await newCustomer.save();
@@ -74,7 +193,7 @@ export const addCustomer = async (
         (err: any) => err.message
       );
       sendErrorResponse(res, 400, messages.join(", "));
-    }
+    };
 
     // Handle duplicate key errors (code 11000)
     if (error.code === 11000) {
@@ -87,7 +206,8 @@ export const addCustomer = async (
     }
     return sendErrorResponse(res, 500, "Internal Server Error");
   }
-}; 
+};
+
 
 export const searchCustomer = async (
   req: Request, 

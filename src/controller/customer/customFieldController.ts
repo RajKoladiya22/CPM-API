@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import AdminCustomField from "../models/customFieldModel";
+import AdminCustomField from "../../models/customer/customFieldModel";
 import {
   sendSuccessResponse,
   sendErrorResponse,
-} from "../utils/responseHandler";
+} from "../../utils/responseHandler";
 
 export const addCustomField = async (
   req: Request,

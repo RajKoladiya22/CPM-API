@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { addCustomerToSheet } from "./googleSheetsHelper";
-import Customer  from "../models/customerModel";
+import Customer  from "../models/customer/customerModel";
 import {
     sendSuccessResponse,
     sendErrorResponse,

@@ -12,6 +12,7 @@ export interface IUser extends Document {
   registrationCode: string;
   lastLogin: Date | null;
   createdAt: Date;
+  renewDate: Date;
   updatedAt: Date;
   userId: string;
   resetPasswordToken?: String | null;
@@ -24,9 +25,39 @@ export interface ICode extends Document {
   designation: string;
   code: string; // The actual registration code
   createdBy: mongoose.Types.ObjectId; // The ID of the user (super admin or admin) who created the code
-  role: string; // Role that the code is used for: 'admin' or 'user'
+  assignedToRole: string; // Role that the code is used for: 'admin' or 'user'
   used: boolean; // Whether the code has been used or not
+  expiresAt: Date;
 }
+
+export interface IProduct  {
+  productName: string;
+  purchaseDate: Date;
+  renewalDate?: Date;
+  details?: string;
+  reference?: boolean;
+  referenceDetail?: {
+    referenceId: mongoose.Types.ObjectId;
+    referenceName: string;
+    referenceContact: string;
+    remark?: string;
+  };
+}
+
+export interface ICustomer extends Document {
+  adminId: mongoose.Types.ObjectId;
+  companyName: string;
+  contactPerson: string;
+  mobileNumber: string;
+  email: string;
+  tallySerialNo: string;
+  remark: string;
+  prime: boolean;
+  blacklisted: boolean;
+  products: IProduct[];
+  dynamicFields: Map<string, any>;
+}
+
 
 // 2. IErrorResponse Interface for Standardized Error Response
 export interface IErrorResponse {

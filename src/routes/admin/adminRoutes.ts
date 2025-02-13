@@ -1,7 +1,7 @@
 import express from "express";
 import { Request, Response, NextFunction } from "express";
-import { getUsersByAdmin, userList, deleteUserByAdmin} from "../controller/adminController";
-import { authenticateUser, authorizeRoles } from "../middlewares/authMiddleware";
+import { getUsersByAdmin, userList, deleteUserByAdmin} from "../../controller/admin/adminController";
+import { authenticateUser, authorizeRoles } from "../../middlewares/authMiddleware";
 
 const router = express.Router();
 

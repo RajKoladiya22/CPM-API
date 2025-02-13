@@ -1,9 +1,9 @@
 import mongoose, { Schema, CallbackError } from "mongoose";
 import bcrypt from "bcryptjs";
-import { IUser } from "../utils/interfaces";
+import { IUser } from "../../utils/interfaces";
 
 // Define the user schema
-const userSchema: Schema = new Schema<IUser>(
+const employeeSchema: Schema = new Schema<IUser>(
   {
     username: {
       type: String,
@@ -28,11 +28,11 @@ const userSchema: Schema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "user", "superadmin"],
-      default: "user", // Default role is 'user'
+      default: "user", 
     },
     adminId: { type: Schema.Types.ObjectId, ref: "User", default: null },
     registrationCode: { type: String, default: null },
+    designation: { type: String, required: false },
     lastLogin: {
       type: Date,
       default: null, // Last login can be null initially
@@ -46,7 +46,7 @@ const userSchema: Schema = new Schema<IUser>(
 );
 
 // Hash the password before saving the user document
-userSchema.pre<IUser>("save", async function (next) {
+employeeSchema.pre<IUser>("save", async function (next) {
   if (!this.isModified("password")) {
     return next(); // If password is not modified, proceed
   }
@@ -62,13 +62,13 @@ userSchema.pre<IUser>("save", async function (next) {
 });
 
 // Method to compare password with hashed password in the database
-userSchema.methods.comparePassword = async function (
+employeeSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
 // Create the User model
-const User = mongoose.model<IUser>("User", userSchema);
+const Employee = mongoose.model<IUser>("employee", employeeSchema);
 
-export default User;
+export default Employee;

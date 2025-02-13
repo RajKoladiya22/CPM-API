@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { IUser } from "../utils/interfaces";
+import { IUser } from "../../utils/interfaces";
 
 const router = express.Router();
 

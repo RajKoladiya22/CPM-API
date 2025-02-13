@@ -1,11 +1,11 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
-import db from "./config/db";
-import userRoutes from "./routes/userRoutes";
-import customerRoutes from "./routes/customerRoutes";
-import adminRoutes from "./routes/adminRoutes";
-import tokenRoutes from "./controller/tokenController";
-import taskRoutes from "./routes/taskRoutes";
+import db from "./config/db/db";
+import userRoutes from "./routes/auth/userRoutes";
+import customerRoutes from "./routes/customer/customerRoutes";
+import adminRoutes from "./routes/admin/adminRoutes";
+import tokenRoutes from "./controller/auth/tokenController";
+import taskRoutes from "./routes/task/taskRoutes";
 import { AppError  } from "./utils/AppError";
 import { sendErrorResponse } from "./utils/responseHandler";
 import cors from "cors";

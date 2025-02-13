@@ -5,12 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const db_1 = __importDefault(require("./config/db"));
-const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
-const customerRoutes_1 = __importDefault(require("./routes/customerRoutes"));
-const adminRoutes_1 = __importDefault(require("./routes/adminRoutes"));
-const tokenController_1 = __importDefault(require("./controller/tokenController"));
-const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
+const db_1 = __importDefault(require("./config/db/db"));
+const userRoutes_1 = __importDefault(require("./routes/auth/userRoutes"));
+const customerRoutes_1 = __importDefault(require("./routes/customer/customerRoutes"));
+const adminRoutes_1 = __importDefault(require("./routes/admin/adminRoutes"));
+const tokenController_1 = __importDefault(require("./controller/auth/tokenController"));
+const taskRoutes_1 = __importDefault(require("./routes/task/taskRoutes"));
 const responseHandler_1 = require("./utils/responseHandler");
 const cors_1 = __importDefault(require("cors"));
 dotenv_1.default.config();
