@@ -6,3 +6,6 @@ node_modules/
 
 dist/googleSheet/*.json
 src/googleSheet/*.json
+
+dist/googleSheet
+src/googleSheet
