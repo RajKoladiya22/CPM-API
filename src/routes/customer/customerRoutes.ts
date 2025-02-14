@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { addCustomer, searchCustomer, deleteCustomer, updateCustomer } from "../../controller/customer/customerController";
 import { addCustomField, getCustomFields, updateCustomField, deleteCustomField } from "../../controller/customer/customFieldController";
 import { authenticateUser, authorizeRoles } from "../../middlewares/authMiddleware";
-import { addCustomerInSheeet } from "../../googleSheet/addCustomer";
+// import { addCustomerInSheeet } from "../../googleSheet/addCustomer";
 
 const router = express.Router();
 
