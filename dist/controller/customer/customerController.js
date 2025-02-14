@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCustomer = exports.updateCustomer = exports.searchCustomer = exports.addCustomer = void 0;
+exports.getRenewalReminderList = exports.deleteCustomer = exports.updateCustomer = exports.searchCustomer = exports.addCustomer = void 0;
 const customerModel_1 = __importDefault(require("../../models/customer/customerModel"));
 const customFieldModel_1 = __importDefault(require("../../models/customer/customFieldModel"));
 const responseHandler_1 = require("../../utils/responseHandler");
@@ -285,3 +285,121 @@ const deleteCustomer = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.deleteCustomer = deleteCustomer;
+//Reminder 
+const getRenewalReminderList = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    try {
+        // console.log("\n\nGETED\n\n");
+        const { reminderType = "thisMonth", startDate, endDate } = req.query;
+        const adminId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.role) === "admin" ? (_b = req.user) === null || _b === void 0 ? void 0 : _b.userId : (_c = req.user) === null || _c === void 0 ? void 0 : _c.adminId;
+        const today = new Date();
+        let start, end;
+        // Validate and convert the startDate and endDate to string, if available
+        let startDateStr = startDate && typeof startDate === "string" ? startDate : undefined;
+        let endDateStr = endDate && typeof endDate === "string" ? endDate : undefined;
+        switch (reminderType) {
+            case "thisWeek":
+                start = new Date(today.setDate(today.getDate() - today.getDay()));
+                end = new Date(today.setDate(today.getDate() + (6 - today.getDay())));
+                break;
+            case "in15Days":
+                start = new Date();
+                end = new Date();
+                end.setDate(start.getDate() + 15);
+                break;
+            case "thisMonth":
+                start = new Date(today.getFullYear(), today.getMonth(), 1);
+                end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                break;
+            case "nextMonth":
+                start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+                break;
+            case "custom":
+                if (!startDateStr || !endDateStr) {
+                    return (0, responseHandler_1.sendErrorResponse)(res, 400, "Start date and end date are required for custom range");
+                }
+                start = new Date(startDateStr);
+                end = new Date(endDateStr);
+                break;
+            default:
+                start = new Date(today.getFullYear(), today.getMonth(), 1);
+                end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        }
+        // Query customers whose products have a renewalDate within the given range
+        const customers = yield customerModel_1.default.find({
+            adminId,
+            "products.renewalDate": {
+                $gte: start,
+                $lte: end,
+            },
+        });
+        if (customers.length === 0) {
+            return (0, responseHandler_1.sendErrorResponse)(res, 404, "No customers found for renewal reminder!");
+        }
+        return (0, responseHandler_1.sendSuccessResponse)(res, 200, "Renewal reminders fetched successfully", { customers });
+    }
+    catch (error) {
+        console.error("Error fetching renewal reminders:", error);
+        return (0, responseHandler_1.sendErrorResponse)(res, 500, "Internal Server Error");
+    }
+});
+exports.getRenewalReminderList = getRenewalReminderList;
+// export const getRenewalReminderList = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const { reminderType = "thisMonth", startDate, endDate } = req.query;
+//     const adminId = req.user?.role === "admin" ? req.user?.userId : req.user?.adminId;
+//     const today: Date = new Date();
+//     let startDateStr = startDate && typeof startDate === "string" ? startDate : undefined;
+//     let endDateStr = endDate && typeof endDate === "string" ? endDate : undefined;
+//     let start , end;
+//     switch (reminderType) {
+//       case "thisWeek":
+//         start = new Date(today.setDate(today.getDate() - today.getDay()));
+//         end = new Date(today.setDate(today.getDate() + (6 - today.getDay())));
+//         break;
+//       case "in15Days":
+//         start = new Date();
+//         end = new Date();
+//         end.setDate(start.getDate() + 15);
+//         break;
+//       case "thisMonth":
+//         start = new Date(today.getFullYear(), today.getMonth(), 1);
+//         end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+//         break;
+//       case "nextMonth":
+//         start = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+//         end = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+//         break;
+//       case "custom":
+//         if (!startDate || !endDate) {
+//           return sendErrorResponse(res, 400, "Start date and end date are required for custom range");
+//         }
+//         start = new Date(startDate);
+//         end = new Date(endDate);
+//         break;
+//       default:
+//         start = new Date(today.getFullYear(), today.getMonth(), 1);
+//         end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+//     }
+//     // Query customers whose products have a renewalDate within the given range
+//     const customers = await Customer.find({
+//       adminId,
+//       "products.renewalDate": {
+//         $gte: start,
+//         $lte: end,
+//       },
+//     });
+//     if (customers.length === 0) {
+//       return sendErrorResponse(res, 404, "No customers found for renewal reminder!");
+//     }
+//     return sendSuccessResponse(res, 200, "Renewal reminders fetched successfully", { customers });
+//   } catch (error) {
+//     console.error("Error fetching renewal reminders:", error);
+//     return sendErrorResponse(res, 500, "Internal Server Error");
+//   }
+// };

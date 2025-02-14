@@ -1,6 +1,6 @@
 import express from "express";
 import { Request, Response, NextFunction } from "express";
-import { addCustomer, searchCustomer, deleteCustomer, updateCustomer } from "../../controller/customer/customerController";
+import { addCustomer, searchCustomer, deleteCustomer, updateCustomer, getRenewalReminderList } from "../../controller/customer/customerController";
 import { addCustomField, getCustomFields, updateCustomField, deleteCustomField } from "../../controller/customer/customFieldController";
 import { authenticateUser, authorizeRoles } from "../../middlewares/authMiddleware";
 // import { addCustomerInSheeet } from "../../googleSheet/addCustomer";
@@ -27,7 +27,8 @@ router.delete("/customfield/:id", authenticateUser, authorizeRoles("admin", "sup
 
 
 router.post("/customer", authenticateUser, authorizeRoles("admin", "superadmin"), asyncHandler(addCustomer));
-// router.post('/customer', authenticateUser, authorizeRoles('admin'), asyncHandler(addCustomerInSheeet));
+
+router.get('/customer/product', authenticateUser, authorizeRoles('admin'), asyncHandler(getRenewalReminderList));
 
 router.get("/customer", authenticateUser, authorizeRoles("admin", "user", "superadmin"), asyncHandler(searchCustomer));
 

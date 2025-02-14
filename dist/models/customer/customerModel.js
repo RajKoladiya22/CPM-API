@@ -66,7 +66,7 @@ const customerSchema = new mongoose_1.Schema({
             "Please enter a valid email address",
         ],
     },
-    tallySerialNo: { type: String, required: true },
+    tallySerialNo: { type: String, required: true, match: [/^[0-9]{9}$/, "Tally Serial No. is must be 9 digit"], },
     prime: { type: Boolean, default: false },
     blacklisted: { type: Boolean, default: false },
     remark: { type: String },
@@ -77,37 +77,16 @@ const customerSchema = new mongoose_1.Schema({
         default: () => new Map(), // Ensures it is always initialized
     },
 }, { timestamps: true });
-// 🔹 Indexing for Fast Searching
-customerSchema.index({ adminId: 1 }); // Fetching customers under an admin
-customerSchema.index({ "products.renewalDate": 1 }); // Fast lookup for renewals
-customerSchema.index({ "products.referenceDetail.referenceId": 1 }); // Fast lookup by reference (subadmin)
-customerSchema.index({ "products.productName": 1 }); // Fast lookup by product name
-customerSchema.index({ mobileNumber: 1 }); // Fast search by mobile number
+// Compound index for product searches
+customerSchema.index({ "products.renewalDate": 1, "products.productName": 1, "products.referenceDetail.referenceId": 1 });
+// Full-text search support
 customerSchema.index({
     companyName: "text",
     contactPerson: "text",
     mobileNumber: "text",
     email: "text",
-}); // Full-text search support
-// 🔹 Auto-fill Reference Details if Missing
-// customerSchema.pre("save", function (next) {
-//   if (this.products) {
-//     this.products.forEach((product: any) => {
-//       if (!product.referenceDetail.referenceId) {
-//         if (!product.referenceDetail.referenceName || !product.referenceDetail.referenceContact) {
-//           return next(new Error("Reference details must be filled manually if no referenceId is provided."));
-//         }
-//       }
-//     });
-//   }
-//   if (this.dynamicFields) {
-//     for (const [key, value] of this.dynamicFields.entries()) {
-//       if (typeof value === "undefined") {
-//         this.dynamicFields.set(key, false);
-//       }
-//     }
-//   }
-//   next();
-// });
+}, { default_language: "english" });
+// Index for dynamic fields if needed
+customerSchema.index({ "dynamicFields.someField": 1 });
 const Customer = mongoose_1.default.model("Customer", customerSchema);
 exports.default = Customer;
